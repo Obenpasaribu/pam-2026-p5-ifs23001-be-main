@@ -7,6 +7,8 @@ import org.delcom.helpers.todoDAOToModel
 import org.delcom.tables.TodoTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import java.util.*
 
 class TodoRepository : ITodoRepository {
@@ -77,17 +79,17 @@ class TodoRepository : ITodoRepository {
 
     override suspend fun delete(userId: String, todoId: String): Boolean = suspendTransaction {
         val rowsDeleted = TodoTable.deleteWhere {
-            (TodoTable.id eq UUID.fromString(todoId)) and
-                    (TodoTable.userId eq UUID.fromString(userId))
+            (TodoTable.id eq UUID.fromString(todoId)) and (TodoTable.userId eq UUID.fromString(userId))
         }
         rowsDeleted >= 1
     }
 
     override suspend fun getStats(userId: String): Map<String, Long> = suspendTransaction {
         val userUuid = UUID.fromString(userId)
-        val total = TodoTable.select { TodoTable.userId eq userUuid }.count()
-        val finished = TodoTable.select { (TodoTable.userId eq userUuid) and (TodoTable.isDone eq true) }.count()
-        val unfinished = TodoTable.select { (TodoTable.userId eq userUuid) and (TodoTable.isDone eq false) }.count()
+        
+        val total = TodoDAO.find { TodoTable.userId eq userUuid }.count()
+        val finished = TodoDAO.find { (TodoTable.userId eq userUuid) and (TodoTable.isDone eq true) }.count()
+        val unfinished = TodoDAO.find { (TodoTable.userId eq userUuid) and (TodoTable.isDone eq false) }.count()
 
         mapOf(
             "total" to total,
