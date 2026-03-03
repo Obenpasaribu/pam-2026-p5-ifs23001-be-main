@@ -5,11 +5,8 @@ import org.delcom.entities.Todo
 import org.delcom.helpers.suspendTransaction
 import org.delcom.helpers.todoDAOToModel
 import org.delcom.tables.TodoTable
-import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.lowerCase
 import java.util.*
 
 class TodoRepository : ITodoRepository {
@@ -84,6 +81,19 @@ class TodoRepository : ITodoRepository {
                     (TodoTable.userId eq UUID.fromString(userId))
         }
         rowsDeleted >= 1
+    }
+
+    override suspend fun getStats(userId: String): Map<String, Long> = suspendTransaction {
+        val userUuid = UUID.fromString(userId)
+        val total = TodoTable.select { TodoTable.userId eq userUuid }.count()
+        val finished = TodoTable.select { (TodoTable.userId eq userUuid) and (TodoTable.isDone eq true) }.count()
+        val unfinished = TodoTable.select { (TodoTable.userId eq userUuid) and (TodoTable.isDone eq false) }.count()
+
+        mapOf(
+            "total" to total,
+            "finished" to finished,
+            "unfinished" to unfinished
+        )
     }
 
 }

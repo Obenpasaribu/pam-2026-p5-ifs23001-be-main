@@ -8,4 +8,5 @@ interface  ITodoRepository {
     suspend fun create(todo: Todo): String
     suspend fun update(userId: String, todoId: String, newTodo: Todo): Boolean
     suspend fun delete(userId: String, todoId: String) : Boolean
+    suspend fun getStats(userId: String): Map<String, Long>
 }
