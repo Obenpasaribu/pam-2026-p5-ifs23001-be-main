@@ -11,8 +11,16 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import java.util.*
 
 class TodoRepository : ITodoRepository {
-    override suspend fun getAll(userId: String, search: String, isDone: Boolean?): List<Todo> = suspendTransaction {
+    override suspend fun getAll(
+        userId: String,
+        search: String,
+        isDone: Boolean?,
+        page: Int,
+        perPage: Int
+    ): List<Todo> = suspendTransaction {
         val userUuid = UUID.fromString(userId)
+        val offset = ((page - 1) * perPage).toLong()
+        
         TodoDAO.find {
             var op: Op<Boolean> = TodoTable.userId eq userUuid
             
@@ -27,7 +35,10 @@ class TodoRepository : ITodoRepository {
         }.orderBy(
             if (search.isNotBlank()) TodoTable.title to SortOrder.ASC
             else TodoTable.createdAt to SortOrder.DESC
-        ).map(::todoDAOToModel)
+        )
+        .limit(perPage)
+        .offset(offset)
+        .map(::todoDAOToModel)
     }
 
     override suspend fun getById(todoId: String): Todo? = suspendTransaction {
