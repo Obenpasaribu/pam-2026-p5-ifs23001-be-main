@@ -7,35 +7,33 @@ import org.delcom.helpers.todoDAOToModel
 import org.delcom.tables.TodoTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import java.util.*
 
 class TodoRepository : ITodoRepository {
-    override suspend fun getAll(userId: String, search: String): List<Todo> = suspendTransaction {
-        if (search.isBlank()) {
-            TodoDAO
-                .find {
-                    (TodoTable.userId eq UUID.fromString(userId))
-                }
-                .orderBy(TodoTable.createdAt to SortOrder.DESC)
-                .map(::todoDAOToModel)
-        } else {
-            val keyword = "%${search.lowercase()}%"
+    override suspend fun getAll(userId: String, search: String, isDone: Boolean?): List<Todo> = suspendTransaction {
+        val userUuid = UUID.fromString(userId)
+        TodoDAO.find {
+            var op: Op<Boolean> = TodoTable.userId eq userUuid
+            
+            if (search.isNotBlank()) {
+                op = op and (TodoTable.title.lowerCase() like "%${search.lowercase()}%")
+            }
 
-            TodoDAO
-                .find {
-                    TodoTable.title.lowerCase() like keyword
-                }
-                .orderBy(TodoTable.title to SortOrder.ASC)
-                .map(::todoDAOToModel)
-        }
+            if (isDone != null) {
+                op = op and (TodoTable.isDone eq isDone)
+            }
+            op
+        }.orderBy(
+            if (search.isNotBlank()) TodoTable.title to SortOrder.ASC
+            else TodoTable.createdAt to SortOrder.DESC
+        ).map(::todoDAOToModel)
     }
 
     override suspend fun getById(todoId: String): Todo? = suspendTransaction {
         TodoDAO
             .find {
-                (TodoTable.id eq UUID.fromString(todoId))
+                TodoTable.id eq UUID.fromString(todoId)
             }
             .limit(1)
             .map(::todoDAOToModel)

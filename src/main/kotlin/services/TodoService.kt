@@ -30,8 +30,14 @@ class TodoService(
         val user = ServiceHelper.getAuthUser(call, userRepo)
 
         val search = call.request.queryParameters["search"] ?: ""
+        val isDoneParam = call.request.queryParameters["is_done"]
+        val isDone = when (isDoneParam) {
+            "1", "true" -> true
+            "0", "false" -> false
+            else -> null
+        }
 
-        val todos = todoRepo.getAll(user.id, search)
+        val todos = todoRepo.getAll(user.id, search, isDone)
 
         val response = DataResponse(
             "success",
