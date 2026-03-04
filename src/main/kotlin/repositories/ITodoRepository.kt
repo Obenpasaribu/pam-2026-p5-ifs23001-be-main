@@ -7,6 +7,7 @@ interface ITodoRepository {
         userId: String,
         search: String,
         isDone: Boolean? = null,
+        urgency: String? = null, // Tambahkan ini
         page: Int = 1,
         perPage: Int = 10
     ): List<Todo>

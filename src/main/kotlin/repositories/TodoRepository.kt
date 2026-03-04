@@ -15,6 +15,7 @@ class TodoRepository : ITodoRepository {
         userId: String,
         search: String,
         isDone: Boolean?,
+        urgency: String?,
         page: Int,
         perPage: Int
     ): List<Todo> = suspendTransaction {
@@ -30,6 +31,10 @@ class TodoRepository : ITodoRepository {
 
             if (isDone != null) {
                 op = op and (TodoTable.isDone eq isDone)
+            }
+
+            if (!urgency.isNullOrBlank()) {
+                op = op and (TodoTable.urgency eq urgency)
             }
             op
         }.orderBy(
@@ -58,6 +63,7 @@ class TodoRepository : ITodoRepository {
             description = todo.description
             cover = todo.cover
             isDone = todo.isDone
+            urgency = todo.urgency
             createdAt = todo.createdAt
             updatedAt = todo.updatedAt
         }
@@ -79,6 +85,7 @@ class TodoRepository : ITodoRepository {
             todoDAO.description = newTodo.description
             todoDAO.cover = newTodo.cover
             todoDAO.isDone = newTodo.isDone
+            todoDAO.urgency = newTodo.urgency
             todoDAO.updatedAt = newTodo.updatedAt
             true
         } else {

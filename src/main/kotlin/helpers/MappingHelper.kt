@@ -37,8 +37,8 @@ fun todoDAOToModel(dao: TodoDAO) = Todo(
     title = dao.title,
     description = dao.description,
     isDone =  dao.isDone,
+    urgency = dao.urgency, // Tambahkan ini
     cover = dao.cover,
     createdAt = dao.createdAt,
     updatedAt = dao.updatedAt
 )
-

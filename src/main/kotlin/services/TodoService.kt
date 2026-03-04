@@ -37,10 +37,12 @@ class TodoService(
             else -> null
         }
         
+        val urgency = call.request.queryParameters["urgency"]
+        
         val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
         val perPage = call.request.queryParameters["perPage"]?.toIntOrNull() ?: 10
 
-        val todos = todoRepo.getAll(user.id, search, isDone, page, perPage)
+        val todos = todoRepo.getAll(user.id, search, isDone, urgency, page, perPage)
 
         val response = DataResponse(
             "success",
@@ -127,6 +129,7 @@ class TodoService(
         request.title = oldTodo.title
         request.description = oldTodo.description
         request.isDone = oldTodo.isDone
+        request.urgency = oldTodo.urgency
 
         val isUpdated = todoRepo.update(
             user.id,
